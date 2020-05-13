@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/YiFanChen99/nodejs--mongodb-accessor#readme",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "mongodb": "^3.5.7"
   }
 }

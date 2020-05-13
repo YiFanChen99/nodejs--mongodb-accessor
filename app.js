@@ -1,12 +1,23 @@
 
+require('dotenv').config()
+
+function getUrl() {
+	let env = process.env;
+
+	let protocol = env.MONGO_PROTOCOL || 'mongodb';
+	let host = env.MONGO_HOST || 'localhost:27017';
+	let account = env.MONGO_USERNAME ? `${env.MONGO_USERNAME}:${env.MONGO_PASSWORD}@` : '';
+	return `${protocol}://${account}${host}`;
+}
+
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
 
 // Connection URL
-const url = 'mongodb://localhost:27017';
+const url = getUrl();
 
 // Database Name
-const dbName = 'myProject';
+const dbName = process.env.DB_NAME || 'myProject';
 const collectionName = 'myCollection';
 
 // Use connect method to connect to the server
