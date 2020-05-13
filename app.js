@@ -1,37 +1,46 @@
 
 require('dotenv').config()
+const assert = require('assert');
+const MongoClient = require('mongodb').MongoClient;
 
-function getUrl() {
-	let env = process.env;
-
+function getMongoUrl(env) {
 	let protocol = env.MONGO_PROTOCOL || 'mongodb';
 	let host = env.MONGO_HOST || 'localhost:27017';
 	let account = env.MONGO_USERNAME ? `${env.MONGO_USERNAME}:${env.MONGO_PASSWORD}@` : '';
 	return `${protocol}://${account}${host}`;
 }
 
-const MongoClient = require('mongodb').MongoClient;
-const assert = require('assert');
+async function getDocumentsOnCollection(client, dbName, collectionName) {
+	const collection = client.db(dbName).collection(collectionName);
+	return await collection.find({}).toArray();
+}
 
-// Connection URL
-const url = getUrl();
+async function printCollection(client, dbName, collectionName) {
+	const documents = await getDocumentsOnCollection(client, dbName, collectionName);
 
-// Database Name
-const dbName = process.env.DB_NAME || 'myProject';
-const collectionName = 'myCollection';
+	console.log(`Found ${documents.length} documents:`);
+	console.log(documents);
+}
 
-// Use connect method to connect to the server
-MongoClient.connect(url, function(err, client) {
-	assert.equal(null, err);
-	console.log("Connected successfully to server");
+async function main(client) {
+	console.log("Connected successfully to server.");
 
-	const db = client.db(dbName);
-	const collection = db.collection(collectionName);
-	collection.find({}).toArray(function(err, docs) {
-		assert.equal(err, null);
-		console.log("Found the following records");
-		console.log(docs);
-	});
+	const dbName = process.env.DB_NAME || 'myProject';
+	const collectionName = 'myCollection';
 
+	await printCollection(client, dbName, collectionName);
+
+	return client;
+}
+
+function cleanup(client) {
 	client.close();
-});
+}
+
+const client = MongoClient.connect(getMongoUrl(process.env), {useUnifiedTopology: true})
+	.then(main)
+	.then(cleanup)
+	.catch (error => {
+		console.log(`DB connection error: ${error.message}`);
+	}
+);
